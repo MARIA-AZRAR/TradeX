@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Watchlist, Account
+from .models import Profile, Account
 
 # Register your models here.
 
@@ -11,15 +11,6 @@ class ProfileAdmin(admin.ModelAdmin):
     
     date_hierarchy = 'created_at'
     ordering = ['created_at', 'is_active']
-
-@admin.register(Watchlist)
-class WatchlistAdmin(admin.ModelAdmin):
-    list_display = ['user', 'stock', 'alert_price', 'created_at']
-    list_filter = ['created_at', 'alert_price']
-    search_fields = ['stock.tick','stock.company_name' ]
-    
-    date_hierarchy = 'created_at'
-    ordering = ['created_at']
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
