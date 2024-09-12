@@ -5,6 +5,12 @@ from django.utils import timezone
 
 # Create your models here.
 
+class ActiveStockManager(models.Manager):
+    """Active Objects manager."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
 class Stock(models.Model):
     class StockTypes(models.TextChoices):
         TECHNOLOGY = 'TECH', 'Technology'
@@ -25,9 +31,13 @@ class Stock(models.Model):
     outstanding_shares = models.BigIntegerField()
     list_date = models.DateField()
     stock_type = models.CharField(max_length=20, choices=StockTypes.choices)
+    is_active = models.BooleanField(default=True)
     currency = models.CharField(max_length=20, choices=constants.CURRENCY_CHOICES)
     updated_at = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    objects = models.Manager()
+    active_objects = ActiveStockManager()
     
     class Meta: 
         ordering = ['-tick']
