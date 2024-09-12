@@ -3,13 +3,9 @@ from datetime import timedelta
 from common import constants
 from django.utils import timezone
 
+from common.managers import ActiveObjectsManager
+
 # Create your models here.
-
-class ActiveStockManager(models.Manager):
-    """Active Objects manager."""
-
-    def get_queryset(self):
-        return super().get_queryset().filter(is_active=True)
 
 class Stock(models.Model):
     class StockTypes(models.TextChoices):
@@ -37,7 +33,7 @@ class Stock(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     objects = models.Manager()
-    active_objects = ActiveStockManager()
+    active_objects = ActiveObjectsManager()
     
     class Meta: 
         ordering = ['-tick']
@@ -82,7 +78,7 @@ class Stock(models.Model):
     def previous_close_price(self):
         """Returns the previous day's closing price"""
         yesterday = timezone.now().date() - timedelta(days=1)
-        yesterday_logs = self.price_logs.filter(created_at=yesterday)
+        yesterday_logs = self.price_logs.filter(created_at__date=yesterday)
         
         if yesterday_logs.exists():
             return yesterday_logs.first().new_price
