@@ -1,3 +1,29 @@
-from django.shortcuts import render
-
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from .serialzers import StockSerializer
+from .models import Stock
 # Create your views here.
+
+class StockViewSet(viewsets.ModelViewSet):
+    queryset = Stock.active_objects.all()
+    serializer_class = StockSerializer
+
+
+    def destroy(self, request, *args, **kwargs):
+         """Set the is_active to false in order to soft delete"""
+         instance = self.get_object()
+         instance.is_active = False
+         instance.save()
+         
+         return Response(status=status.HTTP_204_NO_CONTENT)
+     
+    def get_permissions(self):
+        """ Return permission based on action"""
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [IsAuthenticated, IsAdminUser] 
+        
+        else:
+               self.permission_classes = [IsAuthenticated]          
+        return super().get_permissions()

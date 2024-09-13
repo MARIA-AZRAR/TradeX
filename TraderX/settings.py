@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'apps.stocks.apps.StocksConfig',
     'apps.watchlist.apps.WatchlistConfig',
     'apps.trading.apps.TradingConfig',
+    'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
