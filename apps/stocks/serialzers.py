@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from common.constants import ErrorMessages
 from .models import Stock
 
 class StockSerializer(serializers.ModelSerializer):
@@ -25,4 +27,9 @@ class StockSerializer(serializers.ModelSerializer):
         return representation
     
     
-    
+    def validate(self, attrs):
+        volume = attrs.get('volume')
+        outstanding_shares = attrs.get('outstanding_shares')
+        if volume > outstanding_shares:
+            raise serializers.ValidationError(ErrorMessages.INVALID_SHARES_VALUE, code='Invalid')
+        return super().validate(attrs)
