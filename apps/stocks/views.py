@@ -1,9 +1,12 @@
 from rest_framework import viewsets
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import generics
+from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
-from .serialzers import StockSerializer
-from .models import Stock
+from django.shortcuts import get_object_or_404
+from .serialzers import PriceChangeSerializer, StockSerializer
+from .models import PriceChangeLog, Stock
+
 # Create your views here.
 
 class StockViewSet(viewsets.ModelViewSet):
@@ -27,3 +30,24 @@ class StockViewSet(viewsets.ModelViewSet):
         else:
                self.permission_classes = [IsAuthenticated]          
         return super().get_permissions()
+
+
+class PriceHistoryView(generics.ListAPIView):
+    serializer_class = PriceChangeSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        tick = self.request.query_params.get('symbol')
+        
+        if not tick:
+            return Response({'error': 'symbol is required'}, status=400)
+        
+        stock = get_object_or_404(Stock, tick=tick, is_active= True)
+        
+        return PriceChangeLog.objects.filter(stock=stock)
+     
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        
+        return Response(serializer.data)

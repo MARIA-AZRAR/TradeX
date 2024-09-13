@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from common.constants import ErrorMessages
-from .models import Stock
+from .models import Stock, PriceChangeLog
 
 class StockSerializer(serializers.ModelSerializer):
     market_cap = serializers.DecimalField(max_digits=20, decimal_places=2, read_only=True)
@@ -33,3 +33,11 @@ class StockSerializer(serializers.ModelSerializer):
         if volume > outstanding_shares:
             raise serializers.ValidationError(ErrorMessages.INVALID_SHARES_VALUE, code='Invalid')
         return super().validate(attrs)
+    
+    
+class PriceChangeSerializer(serializers.ModelSerializer):
+    timestamp = serializers.DateTimeField(source='created_at', read_only=True)
+    
+    class Meta:
+        model = PriceChangeLog
+        fields = ['old_price', 'new_price', 'timestamp']
