@@ -4,7 +4,7 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from django.shortcuts import get_object_or_404
-from .serialzers import PriceChangeSerializer, StockSerializer
+from .serializers import PriceChangeSerializer, StockSerializer
 from .models import PriceChangeLog, Stock
 
 # Create your views here.
