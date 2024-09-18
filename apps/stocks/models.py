@@ -1,13 +1,13 @@
 from django.db import models
-from datetime import timedelta
 from common import constants
 from django.utils import timezone
 
 from common.managers import ActiveObjectsManager
+from common.models import CustomTimeStamp
 
 # Create your models here.
 
-class Stock(models.Model):
+class Stock(CustomTimeStamp):
     class StockTypes(models.TextChoices):
         TECHNOLOGY = 'TECH', 'Technology'
         HEALTHCARE = 'HEAL', 'Healthcare'
@@ -29,8 +29,7 @@ class Stock(models.Model):
     stock_type = models.CharField(max_length=20, choices=StockTypes.choices)
     is_active = models.BooleanField(default=True)
     currency = models.CharField(max_length=20, choices=constants.CURRENCY_CHOICES)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    
     
     objects = models.Manager()
     active_objects = ActiveObjectsManager()
@@ -56,7 +55,7 @@ class Stock(models.Model):
         if last_log:
             return last_log.new_price - last_log.old_price
     
-        return None
+        return 0
     
     @property
     def percentage_change(self):
@@ -64,6 +63,8 @@ class Stock(models.Model):
         last_log = self.price_logs.first()
         if last_log:
             return ((last_log.new_price - last_log.old_price) / last_log.old_price) * 100
+        
+        return 0
     
     @property
     def opening_price(self):
@@ -72,24 +73,23 @@ class Stock(models.Model):
         if today_logs.exists():
             return today_logs.first().old_price
         
-        return None
+        return self.current_price
     
     @property
     def previous_close_price(self):
-        """Returns the previous day's closing price"""
-        yesterday = timezone.now().date() - timedelta(days=1)
-        yesterday_logs = self.price_logs.filter(created_at__date=yesterday)
+        """Returns the previous closing price"""
+        previous_log = self.price_logs.filter(created_at__date__lt=timezone.now().date()).order_by('-created_at')
+                
+        if previous_log.exists():
+            return previous_log.first().new_price
         
-        if yesterday_logs.exists():
-            return yesterday_logs.first().new_price
-        return None
+        return self.current_price
 
-class PriceChangeLog(models.Model):
+class PriceChangeLog(CustomTimeStamp):
     stock = models.ForeignKey(Stock, on_delete=models.PROTECT, related_name='price_logs')
     old_price = models.DecimalField(max_digits=15, decimal_places=2)
     new_price = models.DecimalField(max_digits=15, decimal_places=2)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+
     
     class Meta:
         ordering = ['-created_at', '-updated_at']
