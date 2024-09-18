@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from datetime import datetime
 from .models import Profile
 
@@ -68,6 +69,28 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         )
         
         return user
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+    
+    def validate(self, attrs):
+        username = attrs.get('username')
+        password = attrs.get('password')
+        
+        print(self.context)
+        if username and password:
+            user = authenticate(username=username, password=password)
+            if user:
+                if not user.is_active:
+                    raise serializers.ValidationError("user is inactive")
+            else: 
+                raise serializers.ValidationError("no user with such username and password")
+        else: 
+            raise serializers.ValidationError("Username or Password is empty")
+        
+        attrs['user'] = user
+        return attrs
     
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
