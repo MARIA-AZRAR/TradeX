@@ -18,3 +18,15 @@ class TransactionSerializer(serializers.Serializer):
     
     class Meta:
         fields = ['quantity' ,'transaction_type', 'stock_symbol']
+        
+class TransactionStatusUpdateSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Transaction
+        fields = ['status']
+        
+    def validate_status(self, value):
+        if value not in [Transaction.StatusTypes.COMPLETED or Transaction.StatusTypes.FAILED]:
+            raise serializers.ValidationError("Status can only be set to complete or failed")
+        return value
+        

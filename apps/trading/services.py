@@ -39,9 +39,13 @@ def handle_transaction(user, stock, account, quantity, transaction_type):
             )
             
         else:
-            portfolio = Portfolio.objects.get(stock=stock, user=user)
-            if portfolio and portfolio.quantity < quantity:
-                raise ValueError("You don't own enough shares of this stock.")
+            try:
+                portfolio = Portfolio.objects.get(stock=stock, user=user)
+                # Now check if the user owns enough shares
+                if portfolio.quantity < quantity:
+                    raise ValueError("You don't own enough shares of this stock.")
+            except Portfolio.DoesNotExist:
+                raise ValueError("You don't own any shares of this stock.")
             
             Transaction.objects.create(
                     user = user,
@@ -52,7 +56,38 @@ def handle_transaction(user, stock, account, quantity, transaction_type):
                     status = Transaction.StatusTypes.PENDING
                 )
                 
+def handle_transaction_status(data, status, account):
+    
+    with transaction.atomic():
+        if status == Transaction.StatusTypes.COMPLETED:
+            price = convert_currency(data.price_at_transaction, data.stock.currency, account.currency)
+            total_amount = price * data.quantity
+            
+            try:
+                portfolio = Portfolio.objects.get(stock=data.stock, user=data.user)
+                # Now check if the user owns enough shares
+                if portfolio.quantity < data.quantity:
+                    raise ValueError("You don't own enough shares of this stock.")
+            except Portfolio.DoesNotExist:
+                raise ValueError("You don't own any shares of this stock.")
+
+            portfolio.quantity -= data.quantity
+
+            #  if sold all the shares 
+            if portfolio.quantity == data.quantity:
+                portfolio.delete()
+            else:
+                portfolio.save()
+                
+            account.balance = float(account.balance) + total_amount
+            account.save()
         
+        # in case of completed or failed update the status
+        data.status = status
+        data.save()
+            
+            
+            
 # Check stock exists or not
 
     # User wants to buy a Stock
