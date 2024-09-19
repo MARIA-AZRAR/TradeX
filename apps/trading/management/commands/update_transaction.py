@@ -17,12 +17,12 @@ class Command(BaseCommand):
         
         if transaction_id:
             try:  
-                tran_object = Transaction.objects.get(transaction_id)
+                tran_object = Transaction.objects.get(id=transaction_id)
                 update_transaction(self, tran_object, new_status)
             except Transaction.DoesNotExist:
                 raise CommandError(f"No transactions against id: {transaction_id}")
         else:
-            tran_objects = Transaction.objects.filter(status=Transaction.StatusTypes.PENDING)
+            tran_objects = Transaction.objects.filter(status=Transaction.StatusTypes.PENDING).order_by('created_at')
             
             for tran_object in tran_objects:
                 update_transaction(self, tran_object, new_status)

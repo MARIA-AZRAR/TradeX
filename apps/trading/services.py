@@ -1,6 +1,7 @@
 from django.db import transaction
 from apps.trading.helpers import convert_currency
 from .models import Transaction, Portfolio
+from decimal import Decimal
 
 
 def handle_transaction(user, stock, account, quantity, transaction_type):
@@ -17,15 +18,18 @@ def handle_transaction(user, stock, account, quantity, transaction_type):
             if account.balance < total_amount:
                 raise ValueError("Insufficient balance")
             
-            portfolio = Portfolio.objects.get(stock=stock, user=user)
-            
-            if portfolio:
+            try:
+                portfolio = Portfolio.objects.get(stock=stock, user=user)
                 portfolio.quantity += quantity
-            else:
-                portfolio = Portfolio(user=user, stock=stock, quantity=quantity, purchase_price=stock.current_price)
                 
-            account.balance = float(account.balance) - total_amount
+            except Portfolio.DoesNotExist:
+                portfolio = Portfolio(user=user, stock=stock, quantity=quantity, purchase_price=stock.current_price)
+            
+            account.balance = account.balance - Decimal(total_amount)
             account.save()
+            
+            stock.volume = stock.volume - quantity
+            stock.save()
             
             portfolio.save()
             
@@ -37,7 +41,6 @@ def handle_transaction(user, stock, account, quantity, transaction_type):
                 transaction_type = transaction_type,
                 status = Transaction.StatusTypes.COMPLETED
             )
-            
         else:
             try:
                 portfolio = Portfolio.objects.get(stock=stock, user=user)
@@ -78,14 +81,17 @@ def handle_transaction_status(data, status, account):
                 return {"error": "Transaction Failed, You don't own any shares of this stock."}
 
             portfolio.quantity -= data.quantity
-
             #  if sold all the shares 
-            if portfolio.quantity == data.quantity:
+            if portfolio.quantity == 0:
                 portfolio.delete()
+
             else:
                 portfolio.save()
+            
+            portfolio.stock.volume = portfolio.stock.volume + data.quantity
+            portfolio.stock.save()
                 
-            account.balance = float(account.balance) + total_amount
+            account.balance = account.balance + Decimal(total_amount)
             account.save()
         
         # in case of completed or failed update the status
