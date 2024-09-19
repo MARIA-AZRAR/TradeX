@@ -67,9 +67,15 @@ def handle_transaction_status(data, status, account):
                 portfolio = Portfolio.objects.get(stock=data.stock, user=data.user)
                 # Now check if the user owns enough shares
                 if portfolio.quantity < data.quantity:
-                    raise ValueError("You don't own enough shares of this stock.")
+                    # Not enough shares, fail the transaction
+                    data.status = Transaction.StatusTypes.FAILED
+                    data.save()
+                    return {"error": "Transaction Failed, You don't own enough shares of this stock."}
             except Portfolio.DoesNotExist:
-                raise ValueError("You don't own any shares of this stock.")
+                # Portfolio does not exist, fail the transaction
+                data.status = Transaction.StatusTypes.FAILED
+                data.save()
+                return {"error": "Transaction Failed, You don't own any shares of this stock."}
 
             portfolio.quantity -= data.quantity
 
@@ -85,7 +91,8 @@ def handle_transaction_status(data, status, account):
         # in case of completed or failed update the status
         data.status = status
         data.save()
-            
+        
+        return {"success": "Transaction processed successfully."}   
             
             
 # Check stock exists or not

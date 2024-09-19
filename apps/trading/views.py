@@ -62,8 +62,11 @@ class TransactionStatusView(generics.UpdateAPIView):
             transaction_status = serializer.validated_data['status']
             account = get_object_or_404(Account, user=transaction.user)
             try:
-                handle_transaction_status(transaction, transaction_status, account)
-                return Response({"success": "Transaction Status Updated"}, status.HTTP_201_CREATED)
+                response = handle_transaction_status(transaction, transaction_status, account)
+                if 'error' in response:
+                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
+                return Response(response, status=status.HTTP_200_OK)
             except ValueError as e:
                 return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
            
