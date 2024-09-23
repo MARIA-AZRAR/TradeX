@@ -1,4 +1,3 @@
-from typing import Any
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.trading.models import Transaction
@@ -11,7 +10,7 @@ class Command(BaseCommand):
         parser.add_argument('transaction_id', type=int, nargs='?')
         parser.add_argument('status', type=str, choices=[choice[0] for choice in Transaction.StatusTypes.choices])
         
-    def handle(self, *args: Any, **options: Any):
+    def handle(self, *args, **options):
         transaction_id = options.get('transaction_id', None)
         new_status = options['status']
         
