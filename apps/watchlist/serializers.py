@@ -7,7 +7,7 @@ from .models import Watchlist
 
 class WatchlistSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
-    stock = serializers.PrimaryKeyRelatedField(queryset=Stock.objects.all())
+    stock = serializers.PrimaryKeyRelatedField(queryset=Stock.active_objects.all())
 
     class Meta:
         model = Watchlist
