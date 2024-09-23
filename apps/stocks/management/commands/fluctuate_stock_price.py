@@ -3,6 +3,7 @@ import numpy as np
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from apps.stocks.models import Stock, PriceChangeLog
+from apps.stocks.tasks import send_alert_email
 from apps.watchlist.models import Watchlist
 
 class Command(BaseCommand):
@@ -55,7 +56,9 @@ def check_alert_price(stock, old_price):
     
     for watchlist in watchlists:
         if send_alert(watchlist.alert_price, old_price, stock.current_price):
-            print('--------- price alert ------------') 
+            message = f"Price has changed according to your desired price \n Stock: {watchlist.stock.company_name} \n Alert Set {watchlist.alert_price:.2f} \n Price Changed to: {stock.current_price:.2f}"
+            
+            send_alert_email.delay(watchlist.user.email, message)
         
         
 def send_alert(alert_price, old_price, new_price):

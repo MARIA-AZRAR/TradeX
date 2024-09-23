@@ -18,7 +18,7 @@ class WatchlistViewset(viewsets.ModelViewSet):
         return Watchlist.objects.filter(user=self.request.user)
     
     def create(self, request, *args, **kwargs):
-        serializer = WatchlistSerializer(data=request.data)
+        serializer = WatchlistSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

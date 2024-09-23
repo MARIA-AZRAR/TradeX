@@ -12,3 +12,14 @@ class WatchlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Watchlist
         fields = ['user', 'alert_price', 'stock']
+        
+    def validate(self, data):
+        # Check if the user already has this stock in their watchlist
+        if self.context.get('request').method == 'POST':
+            user = self.context['request'].user
+            stock = data['stock']
+
+            if Watchlist.objects.filter(user=user, stock=stock).exists():
+                raise serializers.ValidationError("This stock is already in your watchlist.")
+            
+        return data
