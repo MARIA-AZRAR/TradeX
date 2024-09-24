@@ -4,6 +4,7 @@ from common.constants import ErrorMessages
 from .models import Stock, PriceChangeLog
 
 class StockSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
     market_cap = serializers.DecimalField(max_digits=20, decimal_places=2, read_only=True)
     price_change = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     percentage_change = serializers.DecimalField(max_digits=20, decimal_places=2, read_only=True)
@@ -13,7 +14,7 @@ class StockSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stock
         fields = [
-            'company_name', 'tick', 'description', 'current_price', 'volume', 'outstanding_shares', 
+            'id', 'company_name', 'tick', 'description', 'current_price', 'volume', 'outstanding_shares', 
             'currency', 'stock_type', 'market_cap', 'price_change', 'percentage_change', 'opening_price', 
             'previous_close_price', 'list_date', 'is_active'
         ]
@@ -28,10 +29,12 @@ class StockSerializer(serializers.ModelSerializer):
     
     
     def validate(self, attrs):
-        volume = attrs.get('volume')
-        outstanding_shares = attrs.get('outstanding_shares')
-        if volume > outstanding_shares:
-            raise serializers.ValidationError(ErrorMessages.INVALID_SHARES_VALUE, code='Invalid')
+        volume = attrs.get('volume', None)
+        outstanding_shares = attrs.get('outstanding_shares', None)
+         # so that patch request can work
+        if volume is not None and outstanding_shares is not None:
+            if volume > outstanding_shares:
+                raise serializers.ValidationError(ErrorMessages.INVALID_SHARES_VALUE, code='Invalid')
         return super().validate(attrs)
     
     

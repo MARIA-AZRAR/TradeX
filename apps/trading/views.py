@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from apps.stocks.models import Stock
 from apps.trading.services import handle_transaction, handle_transaction_status
 from apps.users.models import Account
-from .serializers import PortfolioSerializer, TransactionSerializer, TransactionStatusUpdateSerializer
+from .serializers import PortfolioSerializer, TransactionSerializer, TransactionStatusUpdateSerializer, TransactionViewSerializer
 from .models import Portfolio, Transaction
 # Create your views here.
 
@@ -43,7 +43,16 @@ class TransactionView(generics.CreateAPIView):
                 return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
             
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+class TransactionListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]    
+    serializer_class  = TransactionViewSerializer
     
+    def get_queryset(self):
+        if  self.request.user.is_superuser:
+            return Transaction.objects.all()
+        
+        return Transaction.objects.filter(user=self.request.user)
     
 class TransactionStatusView(generics.UpdateAPIView):
     serializer_class = TransactionStatusUpdateSerializer

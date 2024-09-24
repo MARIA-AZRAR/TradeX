@@ -18,7 +18,14 @@ class TransactionSerializer(serializers.Serializer):
     
     class Meta:
         fields = ['quantity' ,'transaction_type', 'stock_symbol']
-        
+
+class TransactionViewSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+    user = serializers.ReadOnlyField(source='user.username')
+    class Meta:
+        model = Transaction
+        fields = ['id', 'stock', 'user', 'quantity', 'price_at_transaction', 'transaction_type', 'status', 'created_at', 'updated_at']
+              
 class TransactionStatusUpdateSerializer(serializers.ModelSerializer):
     
     class Meta:
