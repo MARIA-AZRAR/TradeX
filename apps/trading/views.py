@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from apps.stocks.models import Stock
 from apps.trading.services import handle_transaction, handle_transaction_status
 from apps.users.models import Account
+from apps.watchlist.permissions import isOwnerPermission
 from .serializers import PortfolioSerializer, TransactionSerializer, TransactionStatusUpdateSerializer, TransactionViewSerializer
 from .models import Portfolio, Transaction
 # Create your views here.
@@ -53,7 +54,19 @@ class TransactionListView(generics.ListAPIView):
             return Transaction.objects.all()
         
         return Transaction.objects.filter(user=self.request.user)
+
+class TransactionDetailView(generics.RetrieveAPIView): 
+    serializer_class  = TransactionViewSerializer
+    queryset = Transaction.objects.all()
     
+    def get_permissions(self):
+        if not self.request.user.is_superuser:
+            self.permission_classes = [isOwnerPermission, IsAuthenticated]
+        else:
+            self.permission_classes = [IsAuthenticated, IsAdminUser]
+            
+        return super().get_permissions()
+        
 class TransactionStatusView(generics.UpdateAPIView):
     serializer_class = TransactionStatusUpdateSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
