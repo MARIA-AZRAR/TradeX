@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from datetime import datetime
-from .models import Profile
+from .models import Account, Profile
 
         
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -92,7 +92,10 @@ class LoginSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
     
-class UserSerializer(serializers.ModelSerializer):
+class AccountSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
     class Meta:
-        model = User
-        fields = ['username', 'first_name', 'last_name', 'email', 'is_active']
+        model = Account
+        fields = ['user', 'balance', 'currency']
+        
+        

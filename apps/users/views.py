@@ -7,7 +7,9 @@ from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from rest_framework.permissions import IsAuthenticated
-from .serializers import LoginSerializer, UserRegistrationSerializer
+
+from apps.users.models import Account
+from .serializers import AccountSerializer, LoginSerializer, UserRegistrationSerializer
 
 class UserRegistrationView(generics.CreateAPIView):
     permission_classes = [AllowAny]
@@ -33,3 +35,12 @@ class LogoutView(APIView):
         # Perform logout
         logout(request)
         return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
+
+class AccountListView(generics.ListAPIView):
+    serializer_class = AccountSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """Return the account related to user"""
+        return Account.objects.filter(user=self.request.user)
+    
