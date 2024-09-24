@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import login
 from django.contrib.auth.models import User
+from django.contrib.auth import logout
+from rest_framework.permissions import IsAuthenticated
 from .serializers import LoginSerializer, UserRegistrationSerializer
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -23,4 +25,11 @@ class LoginView(APIView):
             return Response({"detail": "Logged In successfully"}, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Perform logout
+        logout(request)
+        return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
