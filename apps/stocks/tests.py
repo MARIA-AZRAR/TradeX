@@ -40,7 +40,7 @@ class StockViewSetTest(APITestCase):
     
     def test_list_stocks_authenticated(self):
         """Test authenticated users can list stocks""" 
-        self.client.force_login(user=self.user)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.stock_list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
