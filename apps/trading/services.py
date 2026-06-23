@@ -1,7 +1,6 @@
 from django.db import transaction
 from apps.trading.helpers import convert_currency
 from .models import Transaction, Portfolio
-from decimal import Decimal
 
 
 def handle_transaction(user, stock, account, quantity, transaction_type):
@@ -25,7 +24,7 @@ def handle_transaction(user, stock, account, quantity, transaction_type):
             except Portfolio.DoesNotExist:
                 portfolio = Portfolio(user=user, stock=stock, quantity=quantity, purchase_price=stock.current_price)
             
-            account.balance = account.balance - Decimal(total_amount)
+            account.balance = account.balance - total_amount
             account.save()
             
             stock.volume = stock.volume - quantity
@@ -91,7 +90,7 @@ def handle_transaction_status(data, status, account):
             portfolio.stock.volume = portfolio.stock.volume + data.quantity
             portfolio.stock.save()
                 
-            account.balance = account.balance + Decimal(total_amount)
+            account.balance = account.balance + total_amount
             account.save()
         
         # in case of completed or failed update the status

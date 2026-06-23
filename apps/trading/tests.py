@@ -28,7 +28,7 @@ class TransactionViewTest(APITestCase):
         account = Account.objects.create(user=self.user, balance=5000.00, currency='USD')
         
         # Expected values after the transaction
-        expected_sale_amount = float(150.00 * 10)  # price per share * quantity
+        expected_sale_amount = Decimal('150.00') * 10  # price per share * quantity
         expected_new_balance = account.balance - expected_sale_amount
         expected_new_stock_volume = self.stock.volume - 10
         
@@ -83,7 +83,7 @@ class TransactionViewTest(APITestCase):
         account = Account.objects.create(user=self.user, balance=5000.00, currency='USD')
         
         # Expected values after the transaction
-        expected_sale_amount = float(150.00 * 10)  # price per share * quantity
+        expected_sale_amount = Decimal('150.00') * 10  # price per share * quantity
         expected_new_balance = account.balance + expected_sale_amount
         expected_new_stock_volume = self.stock.volume + 10
         
